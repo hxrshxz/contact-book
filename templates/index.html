@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modern Contact Book</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="header">
+      <h1>📖 Contact Book</h1>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search contacts..."
+      />
+    </div>
+
+    <div class="container">
+      <div class="buttons">
+        <button onclick="openModal()">➕ Add Contact</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Address</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for contact in contacts %}
+          <tr>
+            <td>{{ contact.id }}</td>
+            <td>{{ contact.name }}</td>
+            <td>{{ contact.phone }}</td>
+            <td>{{ contact.email }}</td>
+            <td>{{ contact.address }}</td>
+            <td>
+              <a href="/edit/{{ contact.id }}" class="btn-edit">✏️ Edit</a>
+              <a href="/delete/{{ contact.id }}" class="btn-delete"
+                >🗑️ Delete</a
+              >
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="modal" id="contactModal">
+      <div class="modal-content">
+        <h2>Add Contact</h2>
+        <form action="/add" method="POST" id="contactForm">
+          <label>Name</label>
+          <input type="text" name="name" required />
+
+          <label>Phone</label>
+          <input type="text" name="phone" />
+
+          <label>Email</label>
+          <input type="email" name="email" />
+
+          <label>Address</label>
+          <input type="text" name="address" />
+
+          <label>Notes</label>
+          <textarea name="notes" rows="3"></textarea>
+
+          <button type="submit">Save Contact</button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // Modal functions
+      function openModal() {
+        document.getElementById("contactModal").style.display = "flex";
+      }
+
+      // Updated form submission handler
+      document
+        .getElementById("contactForm")
+        .addEventListener("submit", function (e) {
+          // Close modal immediately while processing
+          closeModal();
+
+          // Force page reload after 500ms to show new contact
+          setTimeout(() => {
+            window.location.reload();
+          }, 500);
+        });
+
+      // Update closeModal function
+      function closeModal() {
+        document.getElementById("contactModal").style.display = "none";
+      }
+
+      // Replace the existing closeModal() calls with:
+      document
+        .getElementById("contactForm")
+        .addEventListener("submit", function (e) {
+          closeModal();
+        });
+
+      // Keep other modal functions as-is
+
+      function closeModal() {
+        document.getElementById("contactModal").style.display = "none";
+      }
+
+      // Close modal when clicking outside
+      window.onclick = function (event) {
+        const modal = document.getElementById("contactModal");
+        if (event.target === modal) {
+          closeModal();
+        }
+      };
+
+      // Search functionality
+      document
+        .querySelector(".search-input")
+        .addEventListener("input", function (e) {
+          const query = e.target.value;
+          fetch(`/search?q=${query}`)
+            .then((response) => response.json())
+            .then((data) => {
+              const tbody = document.querySelector("tbody");
+              tbody.innerHTML = data
+                .map(
+                  (contact) => `
+                        <tr>
+                            <td>${contact.id}</td>
+                            <td>${contact.name}</td>
+                            <td>${contact.phone}</td>
+                            <td>${contact.email}</td>
+                            <td>${contact.address}</td>
+                            <td>
+                                <a href="/edit/${contact.id}" class="btn-edit">✏️ Edit</a>
+                                <a href="/delete/${contact.id}" class="btn-delete">🗑️ Delete</a>
+                            </td>
+                        </tr>
+                    `
+                )
+                .join("");
+            });
+        });
+    </script>
+  </body>
+</html>
